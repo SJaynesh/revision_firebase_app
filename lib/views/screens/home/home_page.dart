@@ -17,9 +17,11 @@ class HomePage extends StatelessWidget {
           IconButton(
             onPressed: () async {
               log("Btn is clicked...");
-              await AuthService.authService.logout().then((value) {
-                Get.offNamed(Routes.login);
-              },);
+              await AuthService.authService.logout().then(
+                (value) {
+                  Get.offNamed(Routes.login);
+                },
+              );
             },
             icon: Icon(Icons.logout),
           )

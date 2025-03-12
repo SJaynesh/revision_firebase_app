@@ -1,8 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:revision_firebase_app/routes/routes.dart';
 import 'package:revision_firebase_app/services/auth_service.dart';
 import 'package:revision_firebase_app/views/screens/auth/register_page.dart';
+
+import '../../../models/users_model.dart';
+import '../../../services/firestore_service.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -16,9 +20,10 @@ class LoginPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Spacer(),
-            Text("Login",
+            Text(
+              "Login",
               style: TextStyle(
-              fontSize: 35,
+                fontSize: 35,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -26,9 +31,7 @@ class LoginPage extends StatelessWidget {
             TextFormField(
               controller: emailController,
               decoration: InputDecoration(
-                labelText: "Email",
-                hintText: "Enter your email.."
-              ),
+                  labelText: "Email", hintText: "Enter your email.."),
             ),
             const SizedBox(
               height: 25,
@@ -37,30 +40,50 @@ class LoginPage extends StatelessWidget {
               controller: passwordController,
               obscureText: true,
               decoration: InputDecoration(
-                labelText: "Password",
-                hintText: "Enter your password.."
-              ),
+                  labelText: "Password", hintText: "Enter your password.."),
             ),
             const SizedBox(
               height: 25,
             ),
             GestureDetector(
               onTap: () async {
-
                 String email = emailController.text;
                 String password = passwordController.text;
 
-                if(email.isNotEmpty && password.isNotEmpty) {
-                  String msg = await AuthService.authService.loginUser(email: email, password: password);
+                if (email.isNotEmpty && password.isNotEmpty) {
+                  String msg = await AuthService.authService
+                      .loginUser(email: email, password: password);
 
-                  if(msg == "Success") {
-                    Get.snackbar('Login', "user login successfully",backgroundColor: Colors.green,);
+                  if (msg == "Success") {
+                    Get.snackbar(
+                      'Login',
+                      "user login successfully",
+                      backgroundColor: Colors.green,
+                    );
+
+                    FireStoreService.fireStoreService.addUserData(
+                      user: UserModel(
+                        name: email.split('@')[0].toUpperCase(),
+                        email: email,
+                        password: password,
+                        image: "https://picsum.photos/200",
+                      ),
+                    );
+
                     Get.offNamed(Routes.home);
-                  }else {
-                    Get.snackbar('Error', msg,backgroundColor: Colors.redAccent,);
+                  } else {
+                    Get.snackbar(
+                      'Error',
+                      msg,
+                      backgroundColor: Colors.redAccent,
+                    );
                   }
-                }else {
-                  Get.snackbar('Required', "please fill all field...",backgroundColor: Colors.redAccent,);
+                } else {
+                  Get.snackbar(
+                    'Required',
+                    "please fill all field...",
+                    backgroundColor: Colors.redAccent,
+                  );
                 }
               },
               child: Container(
@@ -72,18 +95,43 @@ class LoginPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
-                child: Text("Sign In",style: TextStyle(color: Colors.white,fontSize: 20,),),
+                child: Text(
+                  "Sign In",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                  ),
+                ),
               ),
             ),
             GestureDetector(
               onTap: () async {
                 String msg = await AuthService.authService.signInWithGoogle();
 
-                if(msg == "Success") {
-                  Get.snackbar('Login', "user login successfully",backgroundColor: Colors.green,);
-                  Get.offNamed(Routes.home);
-                }else {
-                  Get.snackbar('Error', msg,backgroundColor: Colors.redAccent,);
+                if (msg == "Success") {
+                  Get.snackbar(
+                    'Login',
+                    "user login successfully",
+                    backgroundColor: Colors.green,
+                  );
+                  User? user = AuthService.authService.currentUser;
+                  if (user != null) {
+                    FireStoreService.fireStoreService.addUserData(
+                      user: UserModel(
+                        name: user.displayName ?? "",
+                        email: user.email!,
+                        password: "",
+                        image: user.photoURL!,
+                      ),
+                    );
+                    Get.offNamed(Routes.home);
+                  }
+                } else {
+                  Get.snackbar(
+                    'Error',
+                    msg,
+                    backgroundColor: Colors.redAccent,
+                  );
                 }
               },
               child: Container(
@@ -98,8 +146,18 @@ class LoginPage extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.g_mobiledata,size: 40,color: Colors.white,),
-                    Text("Sign In With Google",style: TextStyle(color: Colors.white,fontSize: 20,),),
+                    Icon(
+                      Icons.g_mobiledata,
+                      size: 40,
+                      color: Colors.white,
+                    ),
+                    Text(
+                      "Sign In With Google",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -112,13 +170,15 @@ class LoginPage extends StatelessWidget {
               children: [
                 Text("Don't have an account ?"),
                 TextButton(
-                    onPressed: (){
-                      Get.toNamed(Routes.register);
-                    },
-                    child: Text("Register",
-                      style: TextStyle(
+                  onPressed: () {
+                    Get.toNamed(Routes.register);
+                  },
+                  child: Text(
+                    "Register",
+                    style: TextStyle(
                       color: Colors.blue,
-                    ),),
+                    ),
+                  ),
                 )
               ],
             ),
